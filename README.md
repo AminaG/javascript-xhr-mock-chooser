@@ -6,6 +6,11 @@ Goal
 I am searching for a tool that will help writing front-end before the
 back-end for webapp.
 
+Demo
+----
+http://aminag.github.io/javascript-xhr-mock-chooser/tests.host.html
+
+
 The problem
 -----------
 

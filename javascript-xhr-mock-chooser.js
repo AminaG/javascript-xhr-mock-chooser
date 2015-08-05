@@ -10,7 +10,7 @@ function init(){
 }
 
 function showUI(){
-	xhrWindow=$('<div><style>select.response { vertical-align:middle;width: 100px;  overflow: hidden;}span.request {vertical-align: top;    width: 240px;     display: inline-block;    overflow: hidden;}.chooser-container li {  border-bottom: 1px solid rgb(92, 139, 159);padding: 5px 0px;list-style-type: decimal}</style>Javascript-Xhr-moch-Chooser<br><div class=choose-error></div><ul class=chooser-container></ul>Show and Hide by Pressing Ctrl+Alt+Shft+f</div>')
+	xhrWindow=$('<div><button class=toggle>Toggle</button><style>select.response { vertical-align:middle;width: 100px;  overflow: hidden;}span.request {vertical-align: top;    width: 240px;     display: inline-block;    overflow: hidden;}.chooser-container li {  border-bottom: 1px solid rgb(92, 139, 159);padding: 5px 0px;list-style-type: decimal}</style>Javascript-Xhr-moch-Chooser<br><div class=choose-error></div><ul class=chooser-container></ul>Show and Hide by Pressing Ctrl+Alt+Shft+f</div>')
 	xhrWindow.css({
 		right:0,
 		bottom:0,
@@ -21,6 +21,26 @@ function showUI(){
 		"overflow-y":'scroll'
 	})
 
+	xhrWindow.find('.toggle').click(function(){
+		debugger
+		if(!this.tag){
+			this.tag='a'
+			xhrWindow.css({
+				width:$(this).width()*2,
+				height:$(this).height()*2,
+				'overflow-y':'hidden',
+				'overflow-x':'hidden',
+			})
+		}
+		else{
+			this.tag=''
+			xhrWindow.css({
+				width:400,
+				height:300,
+				'overflow-y':'scroll'
+			})
+		}
+	})
 	$(document.body).append(xhrWindow)
 	if (localStorage['xhr_show']!='true'){
 		xhrWindow.hide()
@@ -82,7 +102,7 @@ function getSettings(){
 				if(
 					typeof data[i].response=='object' &&
 					data[i].response.length && 
-					data[i].response['content-type']!=undefined	){
+					data[i].response['content-type']==undefined	){
 					//He have many subitems
 					for(var x in data[i].response)
 					options=options.add( $('<option>')

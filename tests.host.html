@@ -3,14 +3,6 @@
 <head>
 <meta charset="utf-8">
 <script src=https://code.jquery.com/jquery-1.11.3.js></script>
-<script src="fake.js"></script>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-<script src="script.js"></script>
-<link rel="stylesheet" href="style.css">
 <title></title>
 </head>
 <body>
@@ -23,6 +15,9 @@ Hello World
 <button onclick="$.ajax({url:'/d',success:function(a,b,c){alert(a)}})">Test Get /d</button><br>
 <button onclick="$.ajax({url:'/api/getJson',dataType:'json',success:function(a,b,c){console.log(a)}})">Test Get /api/getJson</button><br>
 
+<br>
+Press Alt+Ctrl+Shift+F to show/hide mocker
+<script src="fake.js"></script>
 <script src="javascript-xhr-mock-chooser.js"></script>
 </body>
 </html>
