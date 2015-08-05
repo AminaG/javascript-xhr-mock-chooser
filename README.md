@@ -1,5 +1,6 @@
 JS-Testing?
 
+
 Goal
 ----
 
@@ -17,6 +18,11 @@ The problem
 The front-end doing lot of request to the back-end (For example: sign
 in/ sign up/ loading table data/ more). And I want to make usuability
 test before writing the back-end.
+
+Help
+----
+I need an help with better explain how it is work, and documentation. (And spell checking)
+I will approve your pulling requests. 
 
 Current solutions
 -----------------
