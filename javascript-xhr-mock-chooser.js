@@ -22,10 +22,13 @@ function showUI(){
 	})
 
 	$(document.body).append(xhrWindow)
-	if (localStorage['xhr_show']!='true')
+	if (localStorage['xhr_show']!='true'){
 		xhrWindow.hide()
+		updateObj()
+	}
 	else{
 		xhrWindow.show()
+		updateObj()
 	}
 	$(document).on('keydown',function(e){		
 		if(e.altKey && e.shiftKey && e.ctrlKey && e.keyCode==70){
@@ -36,24 +39,30 @@ function showUI(){
 	})
 }
 
+function isMock(){
+	return (xhrWindow.is(':visible') ||  localStorage['xhr_work_only_when_open']=="false" )
+}
+
 function updateObj(){
-	if (xhrWindow.is(':visible'))
+	if (isMock())
 		XMLHttpRequest=mockXHR;
 	else
 		XMLHttpRequest=_xhrOriginal;	
 }
 function getSettings(){
 	$.ajax({
-		url:'settings.json',
+		url:'xhr-mock-settings.json',
 		dataType:'json',
 		error:function(){
+			debugger
 			$('.choose-error').text('Cannot read settings.json or it is not JSON')
 		},
 		success:function(ans){
 			if(localStorage['xhr_show']==undefined && ans.default_show){
 				xhrWindow.show();
-				updateObj()
+				XMLHttpRequest=mockXHR;
 			}
+			localStorage['xhr_work_only_when_open']=ans.work_only_when_open
 			var data=ans.data
 			for(var i in data){
 				if (!data[i].method) data[i].method='get'
@@ -65,23 +74,28 @@ function getSettings(){
 				st+='<select class=response>'
 				st+='</select>'
 				st+='</li>'				
-				var element=$(st)
+				var element=$(st);
 				element.find('.request').html((data[i].name? data[i].name  + '<br>':'')  + (data[i].method!='get'?data[i].method:'') + ' ' + data[i].url).attr('title',data[i].request).
-				attr('data',JSON.stringify({method:data[i].method || 'get',url:data[i].url}))
+				attr('data',JSON.stringify({method:data[i].method || 'get',url:data[i].url}));
 
-				var options=$()
-				if(typeof data[i].response=='object' && data[i].response.length){
+				var options=$();
+				if(
+					typeof data[i].response=='object' &&
+					data[i].response.length && 
+					data[i].response['content-type']!=undefined	){
+					//He have many subitems
 					for(var x in data[i].response)
 					options=options.add( $('<option>')
 							.data('value',JSON.stringify(data[i].response[x].response))
 							.text(data[i].response[x].name || data[i].response[x].response)
-					)
+					);
 				}
 				else{
+					//Only one item.
 					options=options.add( $('<option>')
 						.data('value',JSON.stringify(data[i].response))
 						.text('Enabled')
-					)
+					);
 				}
 				
 				options=options.add( $('<option>').data('value','0').text('Disabled')  )
@@ -92,7 +106,7 @@ function getSettings(){
 					}).on('change',function(){					
 					localStorage['xhr_' + this.getAttribute('method') + '_' + this.name] = $('option:selected',this).data('value');
 				})
-				$('.chooser-container').append(element)
+				$('.chooser-container').append(element);
 			}
 		}
 	})
@@ -113,23 +127,23 @@ window.mockXHR=function(){
     objFake.open=function(method,url,async){
         objFake.method=method.toLowerCase();
         objFake.url=url.toLowerCase();
-        objFake.async=async
+        objFake.async=async;
         var found=$('.request').filter(function(){
         var o=JSON.parse(this.getAttribute('data'));
-        return ((o.method==method.toLowerCase() || o.method=='get') && o.url.toLowerCase()==url.toLowerCase())
+        return ((o.method==method.toLowerCase() || o.method=='get') && o.url.toLowerCase()==url.toLowerCase());
         })
         if(found.length>0){
-            var val=found.closest('li').find('option:selected').data('value')
+            var val=found.closest('li').find('option:selected').data('value');
             if(val=="0") {
 
             }
             else{
-               try{
-                  objFake.mock=JSON.parse(val)
-                }
-                catch(adasd){
-                    objFake.mock=val
-                }
+               // try{
+               //    objFake.mock= (val)
+               //  }
+                // catch(adasd){
+                    objFake.mock=val;
+                // }
             }
         }
         (new FakeXMLHttpRequest()).open.apply(objFake,arguments);
@@ -137,7 +151,7 @@ window.mockXHR=function(){
     }
     objFake.send=function(){
   
-        if(objFake.mock && xhrWindow.is(':visible')){
+        if(objFake.mock && isMock() ){
           objFake.statusText="OK";
           objFake.respond(objFake.mock.status || 200,{'Content-Type':
           typeof objFake.mock=='object' ? 'application/json' : 'text/html'
@@ -145,7 +159,7 @@ window.mockXHR=function(){
 //           (new FakeXMLHttpRequest).send.apply(objFake,arguments);
         }
         else{          
-            objReal.onreadystatechange=function(){
+            objReal.onreadystatechange=function(){            	
                 if (this.readyState==4){                    
                     objFake.status=this.status;
                     objFake.statusText=this.statusText;
