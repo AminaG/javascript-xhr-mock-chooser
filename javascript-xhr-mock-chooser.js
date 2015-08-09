@@ -15,16 +15,14 @@ function showUI(){
 		right:0,
 		bottom:0,
 		backgroundColor:'skyblue',
-		position:'absolute',
+		position:'fixed',
 		width:400,
 		height:300,
 		"overflow-y":'scroll'
 	})
-
 	xhrWindow.find('.toggle').click(function(){
-		debugger
-		if(!this.tag){
-			this.tag='a'
+		if(!localStorage.xhr_toggle){
+			localStorage.xhr_toggle='a'
 			xhrWindow.css({
 				width:$(this).width()*2,
 				height:$(this).height()*2,
@@ -33,7 +31,7 @@ function showUI(){
 			})
 		}
 		else{
-			this.tag=''
+			localStorage.xhr_toggle=''
 			xhrWindow.css({
 				width:400,
 				height:300,
@@ -41,7 +39,14 @@ function showUI(){
 			})
 		}
 	})
+
 	$(document.body).append(xhrWindow)
+
+	if(localStorage.xhr_toggle=='a'){		
+		localStorage.xhr_toggle=''
+		xhrWindow.find('.toggle').trigger('click');
+	}
+
 	if (localStorage['xhr_show']!='true'){
 		xhrWindow.hide()
 		updateObj()
@@ -74,7 +79,6 @@ function getSettings(){
 		url:'xhr-mock-settings.json',
 		dataType:'json',
 		error:function(){
-			debugger
 			$('.choose-error').text('Cannot read settings.json or it is not JSON')
 		},
 		success:function(ans){
@@ -102,7 +106,7 @@ function getSettings(){
 				if(
 					typeof data[i].response=='object' &&
 					data[i].response.length && 
-					data[i].response['content-type']==undefined	){
+					data[i]['content-type']==undefined	){
 					//He have many subitems
 					for(var x in data[i].response)
 					options=options.add( $('<option>')
