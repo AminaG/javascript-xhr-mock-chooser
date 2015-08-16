@@ -159,7 +159,7 @@ window.mockXHR=function(){
     objFake.send=function(){
         var found=$('.request').filter(function(){
         var o=JSON.parse(this.getAttribute('data'));
-        return ((o.method==method.toLowerCase() || o.method=='get') && o.url.toLowerCase()==url.toLowerCase());
+        return ((o.method==objFake.method.toLowerCase() || o.method=='get') && o.url.toLowerCase()==objFake.url.toLowerCase());
         })
         if(found.length>0){
             var val=found.closest('li').find('option:selected').data('value');
