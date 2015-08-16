@@ -78,8 +78,8 @@ function getSettings(){
 	$.ajax({
 		url:'xhr-mock-settings.json',
 		dataType:'json',
-		error:function(){
-			$('.choose-error').text('Cannot read settings.json or it is not JSON')
+		error:function(e){
+			$('.choose-error').text('Cannot read settings.json or it is not JSON,' + e.statusText )
 		},
 		success:function(ans){
 			if(localStorage['xhr_show']==undefined && ans.default_show){
@@ -147,11 +147,16 @@ if (!window._xhrOriginal) window._xhrOriginal=XMLHttpRequest
 window.mockXHR=function(){
     var objFake=new FakeXMLHttpRequest();    
     var objReal=new _xhrOriginal();
-
+    var requestHeaders=[]
+    objFake.setRequestHeader=function(){
+    	requestHeaders.push(arguments)
+    }
     objFake.open=function(method,url,async){
         objFake.method=method.toLowerCase();
         objFake.url=url.toLowerCase();
         objFake.async=async;
+    }
+    objFake.send=function(){
         var found=$('.request').filter(function(){
         var o=JSON.parse(this.getAttribute('data'));
         return ((o.method==method.toLowerCase() || o.method=='get') && o.url.toLowerCase()==url.toLowerCase());
@@ -170,19 +175,21 @@ window.mockXHR=function(){
                 // }
             }
         }
-        (new FakeXMLHttpRequest()).open.apply(objFake,arguments);
-        objReal.open.apply(objReal,arguments);        
-    }
-    objFake.send=function(){
-  
+  		var i;
         if(objFake.mock && isMock() ){
+          (new FakeXMLHttpRequest()).open.call(objFake,objFake.method,objFake.url);
+          for(i=0;i<requestHeaders.length;i++)
+          	(new FakeXMLHttpRequest()).setRequestHeader.apply(objFake,requestHeaders[i]);
           objFake.statusText="OK";
           objFake.respond(objFake.mock.status || 200,{'Content-Type':
           typeof objFake.mock=='object' ? 'application/json' : 'text/html'
           },objFake.mock);
-//           (new FakeXMLHttpRequest).send.apply(objFake,arguments);
+//           (new FakeXMLHttpRequest).send.call(objFake,objFake.method,objFake.url);
         }
         else{          
+            objReal.open.call(objReal,objFake.method,objFake.url); 
+            for(i=0;i<requestHeaders.length;i++)
+            	objReal.setRequestHeader.apply(objReal,requestHeaders[i]);
             objReal.onreadystatechange=function(){            	
                 if (this.readyState==4){                    
                     objFake.status=this.status;
@@ -199,8 +206,3 @@ window.mockXHR=function(){
     }
     return objFake;
 };
-
-
-
-
-
