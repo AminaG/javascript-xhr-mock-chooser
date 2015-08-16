@@ -23,14 +23,32 @@ if(!window.jQuery || !window.jQuery.fn || !jQuery.fn.jquery){
 }
 
 function init(){
+	if(typeof localStorage['xhr_enable']=='undefined'){
+		localStorage['xhr_enable']=true
+	}
+	if (typeof localStorage['xhr_toggle']=='undefined') localStorage['xhr_toggle']='a'
 	$(function(){
 		showUI();
-		getSettings()
+		getSettings()		
+	})
+}
+
+function updateFromLocalStorage(){
+	$('select').each(function(){
+	    var s='xhr_' + $(this).attr('method') + '_'+$(this).attr('name')
+	    if(localStorage[s]){
+	        $('option',this).each(function(i){
+	            console.log(i)
+	            if($(this).data('value')==localStorage[s]){
+	                $(this).attr('selected',true)
+	            }
+	        })
+	    }
 	})
 }
 
 function showUI(){
-	xhrWindow=$('<div><button class=toggle>Toggle</button><style>select.response { vertical-align:middle;width: 100px;  overflow: hidden;}span.request {vertical-align: top;    width: 240px;     display: inline-block;    overflow: hidden;}.chooser-container li {  border-bottom: 1px solid rgb(92, 139, 159);padding: 5px 0px;list-style-type: decimal}</style>Javascript-Xhr-moch-Chooser<br><div class=choose-error></div><ul class=chooser-container></ul>Show and Hide by Pressing Ctrl+Alt+Shft+f</div>')
+	xhrWindow=$('<div style=z-index:1000000><button class=toggle>...</button>&nbsp;<input type=checkbox class=enable title="Enable and disable to all at once. To hide press Ctrl+Shift+Alt+F"><style>select.response { vertical-align:middle;width: 100px;  overflow: hidden;}span.request {vertical-align: top;    width: 240px;     display: inline-block;    overflow: hidden;}.chooser-container li {  border-bottom: 1px solid rgb(92, 139, 159);padding: 5px 0px;list-style-type: decimal}</style>Mock BackEnd<br><div class=choose-error></div><ul class=chooser-container></ul>Show and Hide by Pressing Ctrl+Alt+Shft+f</div>')
 	xhrWindow.css({
 		right:0,
 		bottom:0,
@@ -40,11 +58,14 @@ function showUI(){
 		height:300,
 		"overflow-y":'scroll'
 	})
+	xhrWindow.find('.enable').attr('checked',localStorage['xhr_enable']=='true').change(function(){
+		localStorage['xhr_enable']=this.checked
+	})
 	xhrWindow.find('.toggle').click(function(){
 		if(!localStorage.xhr_toggle){
 			localStorage.xhr_toggle='a'
 			xhrWindow.css({
-				width:$(this).width()*2,
+				width:$(this).width()*5,
 				height:$(this).height()*2,
 				'overflow-y':'hidden',
 				'overflow-x':'hidden',
@@ -85,7 +106,10 @@ function showUI(){
 }
 
 function isMock(){
-	return (xhrWindow.is(':visible') ||  localStorage['xhr_work_only_when_open']=="false" )
+	return (
+		(xhrWindow.is(':visible') ||  localStorage['xhr_work_only_when_open']=="false"  )
+		&& localStorage['xhr_enable']=='true'
+	)
 }
 
 function updateObj(){
@@ -98,12 +122,11 @@ function getSettings(){
 	$.ajax({
 		url:'xhr-mock-settings.json',
 		dataType:'json',
-		error:function(e){
-			debugger
+		error:function(e){			
 			$('.choose-error').text('Cannot read settings.json or it is not JSON,' + e.statusText )
 		},
 		success:function(ans){
-			if(localStorage['xhr_show']==undefined && ans.default_show){
+			if(localStorage['xhr_show']==undefined && ans.default_open){
 				xhrWindow.show();
 				XMLHttpRequest=mockXHR;
 			}
@@ -149,10 +172,11 @@ function getSettings(){
 					'name':data[i].url,
 					'method':data[i].method || 'post'
 					}).on('change',function(){					
-					localStorage['xhr_' + this.getAttribute('method') + '_' + this.name] = $('option:selected',this).data('value');
+					localStorage['xhr_' + this.getAttribute('method') + '_' + this.name] = $('option:selected',this).data('value');'x'
 				})
 				$('.chooser-container').append(element);
 			}
+			updateFromLocalStorage()
 		}
 	})
 }
@@ -209,6 +233,7 @@ window.mockXHR=function(){
         }
   		var i;
         if(objFake.mock && isMock() ){
+          console.log(objFake.method + ' ' + objFake.url);
           (new FakeXMLHttpRequest()).open.call(objFake,objFake.method,objFake.url);
           for(i=0;i<requestHeaders.length;i++)
           	(new FakeXMLHttpRequest()).setRequestHeader.apply(objFake,requestHeaders[i]);
